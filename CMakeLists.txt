@@ -15,7 +15,7 @@ add_library(HFX SHARED
         src/arch/thread.c
         src/video/window.c
         src/logger.c
-        src/igc.c
+        src/igw.c
 )
 
 add_compile_definitions("IMGUI_IMPL_OPENGL_LOADER_GL3W")
