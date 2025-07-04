@@ -1,29 +1,62 @@
-#include <igw.h>
-#include <video/window.h>
+#include <rendering/buffer.h>
+#include <rendering/mesh.h>
+#include <rendering/imgui/igw.h>
+#include <rendering/window.h>
+#include <rendering/shader.h>
+
+#include <fileapi.h>
 
 int main() {
-    Window window;
-    window_init(&window, "Hello World", 1200, 600);
-
-    f32 slider_value = 0.0f;
-
-    while (!window_should_close(&window))
-    {
-        window_update_input(&window);
-        ig_frame_new();
-
-        window_clear(0.125f, 0.125f, 0.125f, 1.0f);
-        {
-            ig_begin("Sample Window", nullptr, 0);
-            ig_text("This is useful, I guess..");
-            ig_slider1f("Slider", &slider_value, 0.0f, 1.0f, "%.2f", 0);
-            ig_end();
-        }
-
-        ig_render();
-        window_swap_buffers(&window);
+    struct WINDOW* window = HFX_WindowCreate("Hello World", 1200, 675);
+    if (window == NULL) {
+        fprintf(stderr, "Failed to create window (Error: %d)\n", HFX_GetLastError());
+        exit(1);
     }
 
-    window_terminate(&window);
+    struct MESH* mesh = HFX_MeshCreate(3, 3);
+    HFX_MeshSetVertexPositions(mesh, 0, 3, (vec3[]) {
+        { -0.5f, -0.5f, 0.0f },
+        { 0.5f, -0.5f, 0.0f },
+        { 0.0f, 0.5f, 0.0f }
+    });
+    HFX_MeshSetIndices(mesh, 0, 3, (u32[]) { 0, 1, 2 });
+    HFX_MeshUploadBuffers(mesh);
+
+    char buffer[64];
+    GetFullPathName("shaders/example.glsl", 64, buffer, nullptr);
+
+    struct SHADER* shader = HFX_ShaderCreate(buffer);
+    if (shader == NULL)
+    {
+        fprintf(stderr, "Failed to create shader (Error: %d)\n", HFX_GetLastError());
+        exit(1);
+    }
+
+    IG_Init(window);
+    while (!HFX_WindowShouldClose(window))
+    {
+        HFX_WindowUpdateInput();
+        IG_NewFrame();
+
+        HFX_WindowClearScreen(0.125f, 0.125f, 0.125f, 1.0f);
+        { // Geometry
+            HFX_DrawMesh(mesh, shader);
+        }
+
+        { // UI
+            IG_Begin("Sample Window", nullptr, 0);
+            IG_Text("This is useful, I guess..");
+            IG_End();
+        }
+
+        IG_Render();
+        HFX_WindowSwapBuffers(window);
+    }
+
+    IG_Destroy();
+
+    HFX_MeshDestroy(mesh);
+    HFX_ShaderDestroy(shader);
+    HFX_WindowDestroy(window);
     return 0;
 }

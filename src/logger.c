@@ -1,28 +1,40 @@
-#include <logger.h>
+#include "logger.h"
 #include <stdarg.h>
 
-void hfx_log_init(const char* path)
+static struct {
+    FILE* file;
+} g_Logger;
+
+void HFX_LogInit(
+    const FILE *const fp)
 {
-    if (path == nullptr)
-    {
-        gLogger.file = stdout;
+    if (g_Logger.file != nullptr)
         return;
+
+    if (fp == nullptr)
+    {
+        g_Logger.file = stderr;
+        HFX_Log( "[ERROR]: Invalid file pointer passed to logger\n");
+    } else {
+        g_Logger.file = (FILE*)fp;
     }
 }
 
-void hfx_log(const char *format, ...)
+void HFX_Log(
+    const char *const format, ...)
 {
-    if (gLogger.file == nullptr)
-        hfx_log_init(nullptr);
+    if (g_Logger.file == nullptr)
+        return;
 
     va_list args;
     va_start(args, format);
 
-    vfprintf(gLogger.file, format, args);
+    vfprintf(g_Logger.file, format, args);
     va_end(args);
 }
 
-const char* hfx_log_level_cstr(const LogLevel level)
+const char* HFX_LogLevelCStr(
+    const int level)
 {
     switch (level)
     {

@@ -5,12 +5,12 @@
 #include <cimgui.h>
 #include <cimgui_impl.h>
 
-#include "igw.h"
+#include "rendering/imgui/igw.h"
 
-void ig_init(
-    const Window *const window)
+void IG_Init(
+    const PWINDOW window)
 {
-    const float scale = ig_get_monitor_scale(glfwGetPrimaryMonitor());
+    const float scale = IG_GetMonitorScale(glfwGetPrimaryMonitor());
     igCreateContext(nullptr);
 
     ImGuiIO *io = igGetIO_Nil();
@@ -31,19 +31,19 @@ void ig_init(
 }
 
 
-f32 ig_get_monitor_scale(const GLFWmonitor *const monitor)
+f32 IG_GetMonitorScale(const GLFWmonitor *const monitor)
 {
     return ImGui_ImplGlfw_GetContentScaleForMonitor((GLFWmonitor*)monitor);
 }
 
-void ig_frame_new()
+void IG_NewFrame()
 {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     igNewFrame();
 }
 
-void ig_begin(
+void IG_Begin(
     const char* name,
     bool* open,
     const int flags)
@@ -51,7 +51,7 @@ void ig_begin(
     igBegin(name, open, flags);
 }
 
-void ig_text(const char *const text, ...)
+void IG_Text(const char *const text, ...)
 {
     va_list args;
     va_start(args, text);
@@ -60,7 +60,7 @@ void ig_text(const char *const text, ...)
 }
 
 
-void ig_slider1f(
+void IG_Slider1F(
     const char* label,
     f32 const* val,
     const f32 min,
@@ -71,18 +71,18 @@ void ig_slider1f(
     igSliderFloat(label, (f32*)val, min, max, format, flags);
 }
 
-void ig_end()
+void IG_End()
 {
     igEnd();
 }
 
-void ig_render()
+void IG_Render()
 {
     igRender();
     ImGui_ImplOpenGL3_RenderDrawData(igGetDrawData());
 }
 
-void ig_terminate()
+void IG_Destroy()
 {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();

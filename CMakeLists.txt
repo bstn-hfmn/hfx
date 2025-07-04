@@ -13,13 +13,18 @@ add_library(HFX SHARED
         external/cimgui/imgui/backends/imgui_impl_glfw.cpp
         external/glad/src/glad.c
         src/arch/thread.c
-        src/video/window.c
+        src/rendering/window.c
         src/logger.c
-        src/igw.c
+        src/rendering/imgui/igw.c
+        src/rendering/buffer.c
+        src/rendering/mesh.c
+        src/rendering/shader.c
+        src/common.c
 )
 
 add_compile_definitions("IMGUI_IMPL_OPENGL_LOADER_GL3W")
 target_compile_definitions(HFX PRIVATE HFX_BUILD)
+target_compile_definitions(HFX PRIVATE $<$<CONFIG:Debug>:HFX_DEBUG>)
 
 target_link_libraries(HFX PRIVATE glfw cimgui)
 
