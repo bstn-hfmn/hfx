@@ -1,20 +1,80 @@
 #include "rendering/mesh.h"
-
+#include "rendering/shader.h"
+#include "memory/memory.h"
 #include <string.h>
-#include <rendering/shader.h>
+
+
+PMESH CreatePrimitiveCube()
+{
+    static vec3 g_CubeVertexPositions[] = {
+        {-0.5f, -0.5f, -0.5f}, // 0: Left  Bottom Back
+        { 0.5f, -0.5f, -0.5f}, // 1: Right Bottom Back
+        { 0.5f,  0.5f, -0.5f}, // 2: Right Top    Back
+        {-0.5f,  0.5f, -0.5f}, // 3: Left  Top    Back
+        {-0.5f, -0.5f,  0.5f}, // 4: Left  Bottom Front
+        { 0.5f, -0.5f,  0.5f}, // 5: Right Bottom Front
+        { 0.5f,  0.5f,  0.5f}, // 6: Right Top    Front
+        {-0.5f,  0.5f,  0.5f}, // 7: Left  Top    Front
+    };
+
+
+    struct MESH* mesh = HFX_MeshCreate(8, 36);
+    HFX_MeshSetVertexPositions(mesh, 0, 8, g_CubeVertexPositions);
+    HFX_MeshSetIndices(mesh, 0, 36, (u32[]){
+        // Back face
+       0, 1, 2,
+       2, 3, 0,
+
+       // Front face
+       4, 6, 5,
+       6, 4, 7,
+
+       // Left face
+       0, 3, 7,
+       7, 4, 0,
+
+       // Right face
+       1, 5, 6,
+       6, 2, 1,
+
+       // Bottom face
+       0, 4, 5,
+       5, 1, 0,
+
+       // Top face
+       3, 2, 6,
+       6, 7, 3
+    });
+    HFX_MeshUploadBuffers(mesh);
+
+    return mesh;
+}
+
+PMESH HFX_MeshCreatePrimitive(
+    HFX_ENUM primitive)
+{
+    switch (primitive)
+    {
+    case HFX_PRIMITIVE_CUBE: return CreatePrimitiveCube();
+
+    default: break;
+    };
+
+    return nullptr;
+}
 
 PMESH HFX_MeshCreate(
     const usize vertices,
     const usize indices)
 {
-    struct MESH* mesh = malloc(sizeof(struct MESH));
+    struct MESH* mesh = HFX_ALLOC(sizeof(struct MESH));
     mesh->verticesCount = vertices;
     mesh->indicesCount = indices;
 
-    mesh->vertices = malloc(sizeof(struct VERTEX) * vertices);
+    mesh->vertices = HFX_ALLOC(sizeof(struct VERTEX) * vertices);
     memset(mesh->vertices, 0, vertices * sizeof(struct VERTEX));
 
-    mesh->indices = malloc(indices * sizeof(u32));
+    mesh->indices = HFX_ALLOC(indices * sizeof(u32));
     memset(mesh->indices, 0, indices * sizeof(u32));
 
     HFX_VertexBufferGenerate(&mesh->vbo);
@@ -52,7 +112,7 @@ void HFX_MeshUploadBuffers(
     HFX_ElementBufferBind(mesh->ebo);
     HFX_ElementBufferData(mesh->ebo, mesh->indices, mesh->indicesCount * sizeof(u32), HFX_USAGE_STATIC);
 
-    const struct VERTEX_ATTRIBUTE attributes[] = {
+    struct VERTEX_ATTRIBUTE attributes[] = {
         { .dataCount = 3, .dataType = HFX_TYPE_FLOAT, .offset = offsetof(struct VERTEX, position), false },
         { .dataCount = 3, .dataType = HFX_TYPE_FLOAT, .offset = offsetof(struct VERTEX, normal), false },
         { .dataCount = 4, .dataType = HFX_TYPE_FLOAT, .offset = offsetof(struct VERTEX, tangent), false },
@@ -104,19 +164,4 @@ void HFX_MeshSetIndices(
         start + count > mesh->indicesCount) return;
 
     memcpy(mesh->indices + start, indices, sizeof(u32) * count);
-}
-
-
-void HFX_DrawMesh(PMESH mesh, PSHADER shader)
-{
-    GL_CALL(glUseProgram(shader->program));
-    GL_CALL(glBindVertexArray(mesh->vao));
-
-    GL_CALL(glDrawElements(
-        GL_TRIANGLES,
-        (GLsizei)mesh->indicesCount,
-        GL_UNSIGNED_INT,
-        nullptr));
-
-    glBindVertexArray(0);
 }

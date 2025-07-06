@@ -20,6 +20,9 @@ add_library(HFX SHARED
         src/rendering/mesh.c
         src/rendering/shader.c
         src/common.c
+        src/memory/memory.c
+        src/rendering/renderer.c
+        src/math/transform.c
 )
 
 add_compile_definitions("IMGUI_IMPL_OPENGL_LOADER_GL3W")

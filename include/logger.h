@@ -11,10 +11,10 @@ enum
   LOG_ERROR,
 };
 
-void HFX_LogInit(
+void        HFX_LogInit(
   const FILE *const fp);
 
-void HFX_Log(
+void        HFX_Log(
   const char *format, ...);
 
 const char* HFX_LogLevelCStr(

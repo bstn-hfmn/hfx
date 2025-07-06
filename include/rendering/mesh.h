@@ -6,13 +6,20 @@
 #include <cglm/cglm.h>
 #include "rendering/shader.h"
 
+enum
+{
+    HFX_PRIMITIVE_CUBE,
+    HFX_PRIMITIVE_PYRAMID,
+    HFX_PRIMITIVE_SPHERE
+};
+
 struct VERTEX {
   vec3 position;
   vec3 normal;
   vec4 tangent;
   vec4 color;
   vec2 texCoord;
-} Vertex;
+};
 
 struct MESH {
   u32 verticesCount;
@@ -24,46 +31,49 @@ struct MESH {
   VBO vbo;
   EBO ebo;
   VAO vao;
-} Mesh;
+};
 
 typedef struct MESH *PMESH, MESH_T;
 typedef struct VERTEX *PVERTEX, VERTEX_T;
 
-HFX_API void HFX_DrawMesh(PMESH mesh, PSHADER shader);
+HFX_API void    HFX_DrawMesh(PMESH mesh, PSHADER shader);
 
-HFX_API PMESH HFX_MeshCreate(
+HFX_API PMESH   HFX_MeshCreatePrimitive(
+    HFX_ENUM primitive);
+
+HFX_API PMESH   HFX_MeshCreate(
     usize vertices,
     usize indices);
 
-HFX_API void HFX_MeshDestroy(
+HFX_API void    HFX_MeshDestroy(
     PMESH mesh);
 
-HFX_API void HFX_MeshUploadBuffers(
+HFX_API void    HFX_MeshUploadBuffers(
     PMESH mesh);
 
-HFX_API void HFX_MeshRecalculateNormals(
+HFX_API void    HFX_MeshRecalculateNormals(
     PMESH mesh);
 
-HFX_API void HFX_MeshRecalculateTangents(
+HFX_API void    HFX_MeshRecalculateTangents(
     PMESH mesh);
 
-HFX_API void HFX_MeshSetVertexPositions(
+HFX_API void    HFX_MeshSetVertexPositions(
     PMESH       mesh,
     usize       start,
     usize       count,
     const vec3  positions[]);
 
-HFX_API void HFX_MeshSetTexCoords(
+HFX_API void    HFX_MeshSetTexCoords(
     PMESH       mesh,
     usize       start,
     usize       count,
     const vec2  texcoords[]);
 
-HFX_API void HFX_MeshSetVertexColors(
+HFX_API void    HFX_MeshSetVertexColors(
     PMESH       mesh,
     const vec4  colors[]);
 
-HFX_API void HFX_MeshSetIndices(
+HFX_API void    HFX_MeshSetIndices(
     PMESH       mesh,
     usize       start,
     usize       count,

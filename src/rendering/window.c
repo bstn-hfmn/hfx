@@ -1,9 +1,9 @@
 #include "logger.h"
+#include "rendering/renderer.h"
 #include "rendering/window.h"
-
-#include <stdlib.h>
-
 #include "rendering/imgui/igw.h"
+#include "memory/memory.h"
+#include <stdlib.h>
 
 void FramebufferSizeCallback(
     GLFWwindow* window,
@@ -25,7 +25,7 @@ PWINDOW HFX_WindowCreate(
     HFX_LogInit(stdout);
 #endif
 
-    struct WINDOW *const window = malloc(sizeof(struct WINDOW));
+    struct WINDOW *const window = HFX_ALLOC(sizeof(struct WINDOW));
 
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -42,7 +42,7 @@ PWINDOW HFX_WindowCreate(
     if (window->handle == nullptr)
     {
         HFX_LOG(LOG_ERROR, "Failed to create GLFW Window\n");
-        HFX_SetLastError(HFX_ERROR_WINDOW_GLFW);
+        HFX_SetLastError("Failed to create window");
 
         glfwTerminate();
         return nullptr;
@@ -53,7 +53,7 @@ PWINDOW HFX_WindowCreate(
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         HFX_LOG(LOG_ERROR, "Failed to load OpenGL using glad.\n");
-        HFX_SetLastError(HFX_ERROR_WINDOW_LOAD_GL);
+        HFX_SetLastError("Failed to load OpenGL");
 
         glfwTerminate();
         return nullptr;
@@ -67,16 +67,17 @@ PWINDOW HFX_WindowCreate(
     HFX_LOG(LOG_TRACE, "Renderer (%s)\n", glGetString(GL_RENDERER));
     HFX_LOG(LOG_TRACE, "Shaders (%s)\n", glGetString(GL_SHADING_LANGUAGE_VERSION));
 
-    return window;
+    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LESS);
+
+    HFX_GetRenderer()->window = window;
+    return HFX_GetRenderer()->window;
 }
 
 void HFX_WindowDestroy(
     PWINDOW window)
 {
     glfwDestroyWindow(window->handle);
-    HFX_FREE(window->handle);
-    HFX_FREE(window);
-
     glfwTerminate();
 }
 
@@ -111,5 +112,5 @@ void HFX_WindowClearScreen(
     const f32 alpha)
 {
     GL_CALL(glClearColor(red, green, blue, alpha));
-    GL_CALL(glClear(GL_COLOR_BUFFER_BIT));
+    GL_CALL(glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT));
 }

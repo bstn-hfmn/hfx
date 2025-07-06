@@ -1,4 +1,5 @@
 #include "rendering/shader.h"
+#include "memory/memory.h"
 #include <stdlib.h>
 
 PSHADER HFX_ShaderCreate(
@@ -8,14 +9,14 @@ PSHADER HFX_ShaderCreate(
     if (!file)
     {
         HFX_LOG(LOG_ERROR, "Failed to open file to create shader: %s\n", path);
-        HFX_SetLastError(HFX_ERROR_IO);
+        HFX_SetLastError("Failed to open file");
         return nullptr;
     }
 
     if (fseek(file, 0, SEEK_END) != 0)
     {
         HFX_LOG(LOG_ERROR, "Failed to seek to end of file\n");
-        HFX_SetLastError(HFX_ERROR_IO);
+        HFX_SetLastError("Failed to seek to end of file");
         return nullptr;
     }
 
@@ -28,7 +29,7 @@ PSHADER HFX_ShaderCreate(
         if (ferror(file))
         {
             HFX_LOG(LOG_ERROR, "Failed to read all of the file contents\n");
-            HFX_SetLastError(HFX_ERROR_IO);
+            HFX_SetLastError("Failed to read all of the file contents");
             return nullptr;
         }
     }
@@ -36,13 +37,14 @@ PSHADER HFX_ShaderCreate(
     buffer[read] = '\0';
     fclose(file);
 
-    struct SHADER* shader = malloc(sizeof(struct SHADER));
     char* vertexShaderSource[] = {
-        HFX_SHADER_SOURCE_DEFINES(VERTEX), buffer
+        HFX_SHADER_SOURCE_HEADER_VERT,
+        buffer
     };
 
     char* fragmentShaderSource[] = {
-        HFX_SHADER_SOURCE_DEFINES(FRAGMENT), buffer,
+        HFX_SHADER_SOURCE_HEADER_FRAG,
+        buffer
     };
 
     u32 vertex, fragment;
@@ -79,23 +81,24 @@ PSHADER HFX_ShaderCreate(
                 GL_CALL(glDeleteShader(vertex));
                 GL_CALL(glDeleteShader(fragment));
 
+                struct SHADER* shader = HFX_ALLOC(sizeof(struct SHADER));
                 shader->program = program;
                 return shader;
             } else {
                 GL_CALL(glGetShaderInfoLog(fragment, 512, nullptr, info));
                 HFX_LOG(LOG_ERROR, "Failed to link program (%s)\n\t: %s\n", path, info);
 
-                HFX_SetLastError(HFX_ERROR_SHADER_LINK);
+                HFX_SetLastError("Failed to link shader program");
             }
         } else {
             GL_CALL(glGetShaderInfoLog(fragment, 512, nullptr, info));
             HFX_LOG(LOG_ERROR, "Failed to compile fragment shader (%s)\n\t: %s\n", path, info);
-            HFX_SetLastError(HFX_ERROR_SHADER_COMPILE);
+            HFX_SetLastError("Failed to compile fragment shader");
         }
     } else {
         GL_CALL(glGetShaderInfoLog(vertex, 512, nullptr, info));
         HFX_LOG(LOG_ERROR, "Failed to compile vertex shader (%s)\n\t: %s\n", path, info);
-        HFX_SetLastError(HFX_ERROR_SHADER_COMPILE);
+        HFX_SetLastError("Failed to compile vertex shader");
     }
 
     if (vertex != GL_NONE)
@@ -103,7 +106,6 @@ PSHADER HFX_ShaderCreate(
     if (fragment != GL_NONE)
         glDeleteShader(fragment);
 
-    HFX_FREE(shader);
     return nullptr;
 }
 

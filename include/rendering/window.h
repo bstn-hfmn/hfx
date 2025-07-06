@@ -9,13 +9,12 @@
 typedef void(*WindowResizeCallback)(GLFWwindow* window, int width, int height);
 
 struct WINDOW {
-        const char *title;
+  const char *title;
 
-        usize width;
-        usize height;
+  usize width;
+  usize height;
 
-        GLFWwindow* handle;
-        WindowResizeCallback resizeCallbackSubscribers[16];
+  GLFWwindow* handle;
 };
 
 typedef struct WINDOW *PWINDOW, WINDOW_T;

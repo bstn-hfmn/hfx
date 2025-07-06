@@ -1,14 +1,14 @@
 #include "common.h"
 
-static HFX_ERROR g_Error = 0;
+static const char* g_Error = "";
 
 
-void HFX_SetLastError(HFX_ERROR error)
+void HFX_SetLastError(const char* error)
 {
     g_Error = error;
 }
 
-HFX_ERROR HFX_GetLastError()
+const char* HFX_GetLastError()
 {
     return g_Error;
 }

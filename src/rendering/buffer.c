@@ -1,6 +1,5 @@
 #include "rendering/buffer.h"
-
-#include <stdlib.h>
+#include "memory/memory.h"
 #include <string.h>
 
 void SetBufferData(
@@ -71,7 +70,7 @@ HFX_API void HFX_VertexArrayBind(
 
 void HFX_VertexArrayData(
     const VAO vao,
-    const struct VERTEX_ATTRIBUTE* attributes,
+    struct VERTEX_ATTRIBUTE* attributes,
     const usize stride,
     const usize count)
 {
@@ -120,7 +119,7 @@ struct FRAMEBUFFER_TARGET HFX_FramebufferTargetRenderbuffer(
 PFRAMEBUFFER HFX_FramebufferCreate(
     const usize width,
     const usize height,
-    const struct FRAMEBUFFER_TARGET* const targets,
+    struct FRAMEBUFFER_TARGET* targets,
     const usize count)
 {
     if (count > FRAMEBUFFER_TARGET_CAPACITY)
@@ -128,25 +127,25 @@ PFRAMEBUFFER HFX_FramebufferCreate(
         HFX_LOG(LOG_ERROR, "Framebuffer target count exceeds maximum count, "
                            "there can't be more than %d targets.", FRAMEBUFFER_TARGET_CAPACITY);
 
-        HFX_SetLastError(HFX_ERROR_INVALID_ARGUMENT);
+        HFX_SetLastError("Framebuffer target count exceed maximum count");
         return nullptr;
     }
 
-    struct FRAMEBUFFER* framebuffer = malloc(sizeof(struct FRAMEBUFFER));
+    struct FRAMEBUFFER framebuffer;
 
-    framebuffer->width = width;
-    framebuffer->height = height;
-    framebuffer->targetCount = 0;
+    framebuffer.width = width;
+    framebuffer.height = height;
+    framebuffer.targetCount = 0;
 
-    memset(framebuffer->targets, 0, sizeof(struct FRAMEBUFFER_TARGET) * count);
-    memcpy(framebuffer->targets, targets, sizeof(struct FRAMEBUFFER_TARGET) * count);
+    memset(framebuffer.targets, 0, sizeof(struct FRAMEBUFFER_TARGET) * count);
+    memcpy(framebuffer.targets, targets, sizeof(struct FRAMEBUFFER_TARGET) * count);
 
-    GL_CALL(glGenFramebuffers(1, &framebuffer->handle));
-    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->handle));
+    GL_CALL(glGenFramebuffers(1, &framebuffer.handle));
+    GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, framebuffer.handle));
 
     for (usize i = 0; i < count; i++)
     {
-        struct FRAMEBUFFER_TARGET* target = &framebuffer->targets[i];
+        struct FRAMEBUFFER_TARGET* target = &framebuffer.targets[i];
         switch (target->targetType)
         {
         case HFX_FRAMEBUFFER_TARGET_TEXTURE_2D:
@@ -157,8 +156,8 @@ PFRAMEBUFFER HFX_FramebufferCreate(
                     GL_TEXTURE_2D,
                     0,
                     target->internalFormat,
-                    (GLint)framebuffer->width,
-                    (GLint)framebuffer->height,
+                    (GLint)framebuffer.width,
+                    (GLint)framebuffer.height,
                     0,
                     target->textureFormat,
                     target->dataType,
@@ -180,8 +179,8 @@ PFRAMEBUFFER HFX_FramebufferCreate(
                 GL_CALL(glRenderbufferStorage(
                     GL_RENDERBUFFER,
                     target->internalFormat,
-                    (GLint)framebuffer->width,
-                    (GLint)framebuffer->height));
+                    (GLint)framebuffer.width,
+                    (GLint)framebuffer.height));
 
                 GL_CALL(glFramebufferRenderbuffer(
                     GL_FRAMEBUFFER,
@@ -193,27 +192,29 @@ PFRAMEBUFFER HFX_FramebufferCreate(
         default:
             {
                 HFX_LOG(LOG_ERROR, "Tried to generate framebuffer for unknown target");
-                HFX_SetLastError(HFX_ERROR_INVALID_ARGUMENT);
+                HFX_SetLastError("Tried to generate framebuffer for unknown target");
 
-                HFX_FramebufferDestroy(framebuffer);
+                HFX_FramebufferDestroy(&framebuffer);
                 GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
             } return nullptr;
         }
 
-        framebuffer->targetCount++;
+        framebuffer.targetCount++;
     }
 
     GL_CALL(glBindFramebuffer(GL_FRAMEBUFFER, 0));
     if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
         HFX_LOG(LOG_ERROR, "Framebuffer is not complete");
-        HFX_SetLastError(HFX_ERROR_GL);
+        HFX_SetLastError("Framebuffer is not complete");
 
-        HFX_FramebufferDestroy(framebuffer);
+        HFX_FramebufferDestroy(&framebuffer);
         return nullptr;
     }
 
-    return framebuffer;
+    struct FRAMEBUFFER* fb = HFX_ALLOC(sizeof(struct FRAMEBUFFER));
+    memcpy(fb, &framebuffer, sizeof(struct FRAMEBUFFER));
+    return fb;
 }
 
 void HFX_FramebufferBind(
@@ -223,7 +224,7 @@ void HFX_FramebufferBind(
     GL_CALL(glViewport(0, 0, (GLint)framebuffer->width, (GLint)framebuffer->height));
 }
 
-u32 FramebufferGetTarget(
+u32 HFX_FramebufferGetTarget(
     PFRAMEBUFFER framebuffer,
     const HFX_ENUM attachment)
 {
@@ -253,8 +254,6 @@ void HFX_FramebufferDestroy(
         default: break;
         }
     }
-
-    HFX_FREE(buffer);
 }
 
 void HFX_FramebufferResize(
