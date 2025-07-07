@@ -23,6 +23,7 @@ add_library(HFX SHARED
         src/memory/memory.c
         src/rendering/renderer.c
         src/math/transform.c
+        src/rendering/texture.c
 )
 
 add_compile_definitions("IMGUI_IMPL_OPENGL_LOADER_GL3W")
@@ -39,7 +40,8 @@ target_include_directories(HFX PUBLIC
     external/glad/include
     external/glfw/include
     external/cglm/include
-    external/cimgui)
+    external/cimgui
+    external/stb)
 
 
 add_subdirectory(example)

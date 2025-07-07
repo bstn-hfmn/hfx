@@ -7,44 +7,81 @@
 PMESH CreatePrimitiveCube()
 {
     static vec3 g_CubeVertexPositions[] = {
-        {-0.5f, -0.5f, -0.5f}, // 0: Left  Bottom Back
-        { 0.5f, -0.5f, -0.5f}, // 1: Right Bottom Back
-        { 0.5f,  0.5f, -0.5f}, // 2: Right Top    Back
-        {-0.5f,  0.5f, -0.5f}, // 3: Left  Top    Back
-        {-0.5f, -0.5f,  0.5f}, // 4: Left  Bottom Front
-        { 0.5f, -0.5f,  0.5f}, // 5: Right Bottom Front
-        { 0.5f,  0.5f,  0.5f}, // 6: Right Top    Front
-        {-0.5f,  0.5f,  0.5f}, // 7: Left  Top    Front
+        {-0.5f, -0.5f,  0.5f},
+        { 0.5f, -0.5f,  0.5f},
+        { 0.5f,  0.5f,  0.5f},
+        {-0.5f,  0.5f,  0.5f},
+
+        {-0.5f, -0.5f,  -0.5f},
+        { 0.5f, -0.5f,  -0.5f},
+        { 0.5f,  0.5f,  -0.5f},
+        {-0.5f,  0.5f,  -0.5f},
+
+        { -0.5f, -0.5f, -0.5f },
+        { -0.5f, -0.5f,  0.5f },
+        { -0.5f,  0.5f,  0.5f },
+        { -0.5f,  0.5f, -0.5f },
+
+        { 0.5f, -0.5f,  0.5f },
+        { 0.5f, -0.5f, -0.5f },
+        { 0.5f,  0.5f, -0.5f },
+        { 0.5f,  0.5f,  0.5f },
+
+        { -0.5f, 0.5f,  0.5f },
+        {  0.5f, 0.5f,  0.5f },
+        {  0.5f, 0.5f, -0.5f },
+        { -0.5f, 0.5f, -0.5f },
+
+        { -0.5f, -0.5f, -0.5f },
+        {  0.5f, -0.5f, -0.5f },
+        {  0.5f, -0.5f,  0.5f },
+        { -0.5f, -0.5f,  0.5f },
     };
 
+    static vec2 g_CubeTexCoords[] = {
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
 
-    struct MESH* mesh = HFX_MeshCreate(8, 36);
-    HFX_MeshSetVertexPositions(mesh, 0, 8, g_CubeVertexPositions);
+        {1.0f, 0.0f},
+        {0.0f, 0.0f},
+        {0.0f, 1.0f},
+        {1.0f, 1.0f},
+
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+
+        {0.0f, 0.0f},
+        {1.0f, 0.0f},
+        {1.0f, 1.0f},
+        {0.0f, 1.0f},
+    };
+
+    struct MESH* mesh = HFX_MeshCreate(24, 36);
+    HFX_MeshSetVertexPositions(mesh, 0, 24, g_CubeVertexPositions);
+    HFX_MeshSetTexCoords(mesh, 0, 24, g_CubeTexCoords);
     HFX_MeshSetIndices(mesh, 0, 36, (u32[]){
-        // Back face
-       0, 1, 2,
-       2, 3, 0,
-
-       // Front face
-       4, 6, 5,
-       6, 4, 7,
-
-       // Left face
-       0, 3, 7,
-       7, 4, 0,
-
-       // Right face
-       1, 5, 6,
-       6, 2, 1,
-
-       // Bottom face
-       0, 4, 5,
-       5, 1, 0,
-
-       // Top face
-       3, 2, 6,
-       6, 7, 3
+        0, 1, 2,  2, 3, 0,
+        4, 5, 6,  6, 7, 4,
+        8, 9,10, 10,11, 8,
+       12,13,14, 14,15,12,
+       16,17,18, 18,19,16,
+       20,21,22, 22,23,20
     });
+
     HFX_MeshUploadBuffers(mesh);
 
     return mesh;
@@ -87,14 +124,9 @@ PMESH HFX_MeshCreate(
 void HFX_MeshDestroy(
     PMESH mesh)
 {
-    HFX_FREE(mesh->vertices);
-    HFX_FREE(mesh->indices);
-
     glDeleteVertexArrays(1, &mesh->vao);
     glDeleteBuffers(1, &mesh->vbo);
     glDeleteBuffers(1, &mesh->ebo);
-
-    HFX_FREE(mesh);
 }
 
 void HFX_MeshUploadBuffers(
@@ -137,21 +169,25 @@ void HFX_MeshSetVertexPositions(
     const usize count,
     const vec3 positions[])
 {
-    if (start >= mesh->verticesCount || count > mesh->verticesCount ||
-        start + count > mesh->verticesCount) return;
-
-    for (usize i = start; i < start + count; i++)
-    {
-        memcpy(mesh->vertices[i].position, positions[i], sizeof(vec3));
-    }
+    HFX_MESH_VERTICES_SET(position, positions, sizeof(vec3));
 }
 
-void HFX_MeshSetTexCoords(PMESH mesh, usize start, usize count, const vec2 texcoords[])
+void HFX_MeshSetTexCoords(
+    PMESH mesh,
+    usize start,
+    usize count,
+    const vec2 texcoords[])
 {
+    HFX_MESH_VERTICES_SET(texCoord, texcoords, sizeof(vec2));
 }
 
-void HFX_MeshSetVertexColors(PMESH mesh, const vec4 colors[])
+void HFX_MeshSetVertexColors(
+    PMESH mesh,
+    usize start,
+    usize count,
+    const vec4 colors[])
 {
+    HFX_MESH_VERTICES_SET(color, colors, sizeof(vec4));
 }
 
 void HFX_MeshSetIndices(

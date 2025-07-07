@@ -5,6 +5,7 @@
 #include "rendering/mesh.h"
 #include "rendering/window.h"
 #include "rendering/camera.h"
+#include "rendering/texture.h"
 
 #define COMMAND_BUFFER_CAPACITY 256
 
@@ -58,10 +59,11 @@ HFX_API void 		HFX_RendererDrawMesh(
     PSHADER             shader,
     struct TRANSFORM 	transform);
 
-/*HFX_API void 		HFX_RendererDrawMeshEx(
+HFX_API void 		HFX_RendererDrawMeshEx(
     PMESH 				mesh,
+    PSHADER             shader,
     struct TRANSFORM 	transform,
     vec4 				color,
-    PTEXTURE 			texture);*/
+    PTEXTURE 			texture);
 
 #endif //HFX_RENDERER_H

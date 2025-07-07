@@ -14,13 +14,12 @@ void HFX_TransformGetMatrix(
     versor rot;
     glm_euler_xyz_quat(euler, rot);
 
-    mat4 rotation;
+    mat4 rotation = GLM_MAT4_IDENTITY_INIT;
     glm_quat_mat4(rot, rotation);
 
     mat4 scale = GLM_MAT4_IDENTITY_INIT;
     glm_scale(scale, transform->scale);
 
-    mat4 tr;
-    glm_mat4_mul(translation, rotation, tr);
-    glm_mat4_mul(tr, scale, matrix);
+    glm_mat4_mul(translation, rotation, matrix);
+    glm_mat4_mul(matrix, scale, matrix);
 }

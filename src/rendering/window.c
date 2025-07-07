@@ -10,10 +10,8 @@ void FramebufferSizeCallback(
     const int width,
     const int height)
 {
-    const f32 scale = IG_GetMonitorScale(glfwGetPrimaryMonitor());
-
-    GL_CALL(glViewport(0, 0, (GLsizei)(scale*(f32)width), (GLsizei)(scale*(f32)height)));
-    HFX_LOG(LOG_TRACE, "Framebuffer Resized [%dx%d] [IG:Scale %.2f]\n", width, height, scale);
+    GL_CALL(glViewport(0, 0, (GLsizei)(width), (GLsizei)(height)));
+    HFX_LOG(LOG_TRACE, "Framebuffer Resized [%dx%d]\n", width, height);
 }
 
 PWINDOW HFX_WindowCreate(
@@ -37,8 +35,7 @@ PWINDOW HFX_WindowCreate(
     window->width = width;
     window->height = height;
 
-    const f32 scale = IG_GetMonitorScale(glfwGetPrimaryMonitor());
-    window->handle = glfwCreateWindow((int)((f32)width*scale), (int)((f32)height*scale), title, nullptr, nullptr);
+    window->handle = glfwCreateWindow((int)(width), (int)(height), title, nullptr, nullptr);
     if (window->handle == nullptr)
     {
         HFX_LOG(LOG_ERROR, "Failed to create GLFW Window\n");

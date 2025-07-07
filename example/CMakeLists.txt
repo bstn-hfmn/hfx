@@ -10,7 +10,7 @@ target_include_directories(hfx_example PUBLIC ${CMAKE_SOURCE_DIR}/include)
 target_link_libraries(hfx_example PUBLIC HFX)
 
 set(SHADERS_SOURCE_DIR "${CMAKE_SOURCE_DIR}/example/shaders")
-set(SHADERS_BINARY_DIR "${CMAKE_BINARY_DIR}/example/shaders")
+set(TEXTURES_SOURCE_DIR "${CMAKE_SOURCE_DIR}/example/textures")
 
 add_custom_command(TARGET hfx_example POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_if_different
@@ -21,4 +21,7 @@ add_custom_command(TARGET hfx_example POST_BUILD
 add_custom_target(COPY_SHADERS ALL
     COMMAND ${CMAKE_COMMAND} -E copy_directory "${SHADERS_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/example/shaders")
 
-add_dependencies(hfx_example COPY_SHADERS)
+add_custom_target(COPY_TEXTURES ALL
+        COMMAND ${CMAKE_COMMAND} -E copy_directory "${TEXTURES_SOURCE_DIR}" "${CMAKE_BINARY_DIR}/example/textures")
+
+add_dependencies(hfx_example COPY_SHADERS COPY_TEXTURES)

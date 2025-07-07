@@ -34,18 +34,17 @@ int main() {
     }
 
     struct TRANSFORM transform;
-    glm_vec3_make((vec3){ 0, 0, -3.0f }, transform.translation);
+    glm_vec3_make((vec3){ 0, 0, -5.0f }, transform.translation);
     glm_vec3_make((vec3){ 0, 5.0f, 0 }, transform.rotation);
     glm_vec3_make((vec3){ 1, 1, 1 }, transform.scale);
+
+    GetFullPathName("textures/base-map.png", 64, buffer, nullptr);
+    struct TEXTURE* texture = HFX_TextureCreate(buffer, false);
 
     IG_Init(window);
     while (!HFX_WindowShouldClose(window))
     {
         HFX_WindowUpdateInput();
-
-        float time = (float)HFX_WindowGetTime();
-        transform.rotation[1] = time * 12.0f;
-
         HFX_WindowClearScreen(0.125f, 0.125f, 0.125f, 1.0f);
         { // Geometry
 
@@ -55,15 +54,18 @@ int main() {
 
             HFX_CmdDraw();*/
 
-            //HFX_RendererDrawMesh(); submits the cmd buffer
-            HFX_RendererDrawMesh(cube, shader, transform);
+            //HFX_RendererDrawMesh(cube, shader, transform);
+            HFX_RendererDrawMeshEx(cube, shader, transform, GLM_VEC4_ONE, texture);
             //HFX_DrawMesh(cube, shader);
         }
 
         IG_NewFrame();
         { // UI
             IG_Begin("Sample Window", nullptr, 0);
-            IG_Text("This is useful, I guess..");
+            IG_Slider1F("Rotation X", &transform.rotation[0], 0.0f, 360.0f, "%.1f", 0);
+            IG_Slider1F("Rotation Y", &transform.rotation[1], 0.0f, 360.0f, "%.1f", 0);
+            IG_Slider1F("Rotation Z", &transform.rotation[2], 0.0f, 360.0f, "%.1f", 0);
+
             IG_End();
         }
         IG_Render();

@@ -20,9 +20,10 @@
     in vec2 TexCoord;
     in vec4 VertexColor;
 
-    out vec4 Color;
+    uniform sampler2D Texture;
 
+    out vec4 Color;
     void main() {
-        Color =  vec4(1.0f, 0.0f, 0.0f, 1.0f);
+        Color =  texture(Texture, TexCoord);
     }
 #endif

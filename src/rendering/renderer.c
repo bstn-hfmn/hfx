@@ -9,9 +9,10 @@ bool HFX_Init()
     g_Renderer.camera = HFX_ALLOC(sizeof(struct CAMERA));
 
     glm_vec3_zero(g_Renderer.camera->transform.translation);
+    glm_vec3_make((vec3){ 0, 0, 5.0f }, g_Renderer.camera->transform.translation);
+
     glm_vec3_zero(g_Renderer.camera->transform.rotation);
     glm_vec3_one(g_Renderer.camera->transform.scale);
-    glm_perspective(GLM_PI / 2.0f, 16.0f / 9.0f, 0.1f, 100.0f, g_Renderer.camera->projection);
 
     return true;
 }
@@ -22,8 +23,18 @@ void HFX_Destroy()
     HFX_MemoryArenaFree();
 }
 
-void HFX_RendererDrawMesh(PMESH mesh, PSHADER shader, struct TRANSFORM transform)
+void HFX_RendererDrawMesh(
+    PMESH mesh,
+    PSHADER shader,
+    struct TRANSFORM transform)
 {
+
+    int actualWidth, actualHeight;
+    glfwGetFramebufferSize(g_Renderer.window->handle, &actualWidth, &actualHeight);
+    float aspectRatio = (float)actualWidth / (float)actualHeight;
+
+    glm_perspective(glm_rad(45.0f), aspectRatio, 0.1f, 100.0f, g_Renderer.camera->projection);
+
     GLint   projectionLocation,
             viewLocation,
             modelLocation;
@@ -54,6 +65,17 @@ void HFX_RendererDrawMesh(PMESH mesh, PSHADER shader, struct TRANSFORM transform
         nullptr));
 
     glBindVertexArray(0);
+}
+
+void HFX_RendererDrawMeshEx(
+    PMESH mesh,
+    PSHADER shader,
+    struct TRANSFORM transform,
+    vec4 color,
+    PTEXTURE texture)
+{
+    glBindTexture(GL_TEXTURE_2D, texture->handle);
+    HFX_RendererDrawMesh(mesh, shader, transform);
 }
 
 struct RENDERER* HFX_GetRenderer()

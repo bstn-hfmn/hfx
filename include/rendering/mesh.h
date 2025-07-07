@@ -6,6 +6,16 @@
 #include <cglm/cglm.h>
 #include "rendering/shader.h"
 
+#define HFX_MESH_VERTICES_SET(dst, src, size)\
+    {\
+    if (start >= mesh->verticesCount || count > mesh->verticesCount ||\
+        start + count > mesh->verticesCount) { return; }\
+    for (usize i = start; i < start + count; i++)\
+    {\
+        memcpy(mesh->vertices[i].dst, src[i], size);\
+    }\
+    }
+
 enum
 {
     HFX_PRIMITIVE_CUBE,
@@ -71,6 +81,8 @@ HFX_API void    HFX_MeshSetTexCoords(
 
 HFX_API void    HFX_MeshSetVertexColors(
     PMESH       mesh,
+    usize       start,
+    usize       count,
     const vec4  colors[]);
 
 HFX_API void    HFX_MeshSetIndices(

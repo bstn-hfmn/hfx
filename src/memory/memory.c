@@ -17,24 +17,18 @@ void HFX_MemoryArenaInit()
 void* HFX_MemoryArenaAlloc(
     const usize size)
 {
-    usize offset = 0;
-    bool needNewChunk = false;
-    if (g_Arena.current)
-    {
-        const uintptr_t base = (uintptr_t)(g_Arena.current->memory + g_Arena.current->offset);
-        offset
-            = (usize)((base + (HFX_MEMORY_ARENA_ALIGNMENT - 1)) & ~(uintptr_t)(HFX_MEMORY_ARENA_ALIGNMENT - 1))
-            - (uintptr_t)g_Arena.current->memory;
+    if (!g_Arena.current)
+        return nullptr;
 
-        if (offset + size > HFX_MEMORY_ARENA_CHUNK_SIZE)
-            needNewChunk = true;
-        else
-        {
-            g_Arena.current->offset += size;
-        }
-    }
+    const uintptr_t base = (uintptr_t)(g_Arena.current->memory + g_Arena.current->offset);
+    usize aligned_offset
+        = (usize)((base + (HFX_MEMORY_ARENA_ALIGNMENT - 1)) & ~(uintptr_t)(HFX_MEMORY_ARENA_ALIGNMENT - 1))
+        - (uintptr_t)g_Arena.current->memory;
 
-    if (needNewChunk)
+    if (g_Arena.current->offset != aligned_offset)
+        g_Arena.current->offset = aligned_offset;
+
+    if (aligned_offset + size > HFX_MEMORY_ARENA_CHUNK_SIZE)
     {
         struct ARENA_CHUNK* chunk = malloc(sizeof(struct ARENA_CHUNK));
         chunk->memory = calloc( HFX_MEMORY_ARENA_CHUNK_SIZE, sizeof(uint8_t));
@@ -43,13 +37,14 @@ void* HFX_MemoryArenaAlloc(
 
         g_Arena.current->next = chunk;
         g_Arena.current = chunk;
-        offset = 0;
+        aligned_offset = 0;
+    }
+    else
+    {
+        g_Arena.current->offset += size;
     }
 
-    if (g_Arena.current)
-        return g_Arena.current->memory + offset;
-
-    return nullptr;
+    return g_Arena.current->memory + aligned_offset;
 }
 
 void HFX_MemoryArenaFree()
