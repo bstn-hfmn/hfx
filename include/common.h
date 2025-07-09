@@ -5,6 +5,10 @@
 #include <glad/glad.h>
 
 #define HFX_NONE 0
+#define PIf ((float)3.14159265358979323846264338327950288)
+#define TO_DEGREES 180.0f / PIf
+#define TO_RADIANS PIf / 180.0f
+
 #define HFX_FREE(x) if(x != nullptr) { free(x); x = nullptr; }
 
 #ifdef HFX_BUILD
@@ -92,18 +96,6 @@ enum
   HFX_FORMAT_RG32F = GL_RG32F,
   HFX_FORMAT_RGB32F = GL_RGB32F,
   HFX_FORMAT_RGBA32F = GL_RGBA32F,
-};
-
-enum
-{
-  HFX_ERROR_NONE,
-  HFX_ERROR_WINDOW_GLFW,
-  HFX_ERROR_WINDOW_LOAD_GL,
-  HFX_ERROR_IO,
-  HFX_ERROR_SHADER_LINK,
-  HFX_ERROR_SHADER_COMPILE,
-  HFX_ERROR_INVALID_ARGUMENT,
-  HFX_ERROR_GL
 };
 
 void                HFX_SetLastError(

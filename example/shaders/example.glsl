@@ -1,29 +1,26 @@
 #ifdef VERTEX
-    layout(location = 0) in vec3 iPosition;
-    layout(location = 1) in vec3 iNormal;
-    layout(location = 2) in vec4 iTangent;
-    layout(location = 3) in vec4 iColor;
-    layout(location = 4) in vec2 iUV;
+    V2F vert(ATTRIBUTES attrs) {
+        V2F v2f;
+        v2f.Normal = normalize(mat3(transpose(hfx_WorldToObject)) * attrs.Normal);
+        v2f.WorldPosition = HFX_ObjectToWorldPos(attrs.Vertex);
+        v2f.ClipPosition = HFX_ObjectToClipPos(attrs.Vertex);
+        v2f.TexCoord0 = attrs.TexCoord0;
 
-    out vec2 TexCoord;
-    out vec4 VertexColor;
-
-    void main() {
-        TexCoord = iUV;
-        VertexColor = iColor;
-
-        gl_Position = HFX_MATRIX_MVP * vec4(iPosition.xyz, 1.0f);
+        return v2f;
     }
 #endif
 
 #ifdef FRAGMENT
-    in vec2 TexCoord;
-    in vec4 VertexColor;
-
     uniform sampler2D Texture;
 
-    out vec4 Color;
-    void main() {
-        Color =  texture(Texture, TexCoord);
+    vec4 fragment(V2F v2f)
+    {
+        vec3 light = vec3(-5.0f, 3.0f, -5.0f);
+        vec3 toLight = normalize(light - v2f.WorldPosition);
+
+        float ambient = 0.1f;
+        float diffuse = max(dot(v2f.Normal, toLight), 0.0f);
+
+        return texture(Texture, v2f.TexCoord0) * (ambient + diffuse);
     }
 #endif

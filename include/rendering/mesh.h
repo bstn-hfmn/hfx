@@ -20,7 +20,8 @@ enum
 {
     HFX_PRIMITIVE_CUBE,
     HFX_PRIMITIVE_PYRAMID,
-    HFX_PRIMITIVE_SPHERE
+    HFX_PRIMITIVE_SPHERE,
+    HFX_PRIMITIVE_PLANE
 };
 
 struct VERTEX {
@@ -48,7 +49,7 @@ typedef struct VERTEX *PVERTEX, VERTEX_T;
 
 HFX_API void    HFX_DrawMesh(PMESH mesh, PSHADER shader);
 
-HFX_API PMESH   HFX_MeshCreatePrimitive(
+HFX_API PMESH   HFX_MeshPrimitiveCreate(
     HFX_ENUM primitive);
 
 HFX_API PMESH   HFX_MeshCreate(
@@ -62,7 +63,8 @@ HFX_API void    HFX_MeshUploadBuffers(
     PMESH mesh);
 
 HFX_API void    HFX_MeshRecalculateNormals(
-    PMESH mesh);
+    PMESH   mesh,
+    bool    flat);
 
 HFX_API void    HFX_MeshRecalculateTangents(
     PMESH mesh);

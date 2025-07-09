@@ -23,20 +23,14 @@ PWINDOW HFX_WindowCreate(
     HFX_LogInit(stdout);
 #endif
 
-    struct WINDOW *const window = HFX_ALLOC(sizeof(struct WINDOW));
-
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
-    window->title = title;
-    window->width = width;
-    window->height = height;
-
-    window->handle = glfwCreateWindow((int)(width), (int)(height), title, nullptr, nullptr);
-    if (window->handle == nullptr)
+    GLFWwindow* handle = glfwCreateWindow((int)(width), (int)(height), title, nullptr, nullptr);
+    if (handle == nullptr)
     {
         HFX_LOG(LOG_ERROR, "Failed to create GLFW Window\n");
         HFX_SetLastError("Failed to create window");
@@ -46,18 +40,19 @@ PWINDOW HFX_WindowCreate(
     }
 
     HFX_LOG(LOG_TRACE, "Created Window (OpenGL 4.1; Core Profile)\n");
-    glfwMakeContextCurrent(window->handle);
+    glfwMakeContextCurrent(handle);
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         HFX_LOG(LOG_ERROR, "Failed to load OpenGL using glad.\n");
         HFX_SetLastError("Failed to load OpenGL");
 
+        glfwDestroyWindow(handle);
         glfwTerminate();
         return nullptr;
     }
 
     glViewport(0, 0, (GLsizei)width, (GLsizei)height);
-    glfwSetFramebufferSizeCallback(window->handle, FramebufferSizeCallback);
+    glfwSetFramebufferSizeCallback(handle, FramebufferSizeCallback);
 
     HFX_LOG(LOG_TRACE, "OpenGL (%s)\n", glGetString(GL_VERSION));
     HFX_LOG(LOG_TRACE, "Vendor (%s)\n", glGetString(GL_VENDOR));
@@ -66,6 +61,12 @@ PWINDOW HFX_WindowCreate(
 
     glEnable(GL_DEPTH_TEST);
     glDepthFunc(GL_LESS);
+
+    struct WINDOW *const window = HFX_ALLOC(sizeof(struct WINDOW));
+    window->title = title;
+    window->width = width;
+    window->height = height;
+    window->handle = handle;
 
     HFX_GetRenderer()->window = window;
     return HFX_GetRenderer()->window;

@@ -49,21 +49,21 @@ typedef struct RENDERER *PRENDERER, RENDERER_T;
 typedef struct HFX_COMMAND *PCOMMAND, COMMAND_T;
 typedef struct COMMAND_BUFFER *PCOMMAND_BUFFER, COMMAND_BUFFER_T;
 
-HFX_API bool 		HFX_Init();
-HFX_API void 		HFX_Destroy();
+HFX_API bool        HFX_Init(
+  const char* title,
+  usize       width,
+  usize       height);
 
-struct RENDERER* 	HFX_GetRenderer();
+HFX_API void        HFX_Destroy();
 
-HFX_API void 		HFX_RendererDrawMesh(
-    PMESH 				mesh,
-    PSHADER             shader,
-    struct TRANSFORM 	transform);
+HFX_API PCAMERA     HFX_GetCamera();
+HFX_API PWINDOW     HFX_GetWindow();
+HFX_API PRENDERER   HFX_GetRenderer();
 
-HFX_API void 		HFX_RendererDrawMeshEx(
-    PMESH 				mesh,
-    PSHADER             shader,
-    struct TRANSFORM 	transform,
-    vec4 				color,
-    PTEXTURE 			texture);
+HFX_API void        HFX_RendererDrawMesh(
+    PMESH             mesh,
+    PSHADER           shader,
+    struct TRANSFORM  transform,
+    PTEXTURE          texture);
 
 #endif //HFX_RENDERER_H

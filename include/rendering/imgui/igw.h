@@ -20,6 +20,20 @@ HFX_API void    IG_Slider1F(
     const char* format,
     int         flags);
 
+
+HFX_API void IG_Slider3F(
+    const char*     label,
+    f32             values[3],
+    f32             min,
+    f32             max,
+    const char*     format,
+    const HFX_ENUM  flags);
+
+HFX_API bool IG_CollapsingHeader(const char* label);
+
+HFX_API bool IG_Button(
+    const char* label);
+
 HFX_API void    IG_Begin(
     const char* name,
     bool*       open,

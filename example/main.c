@@ -8,20 +8,13 @@
 #include <rendering/renderer.h>
 
 int main() {
-    if (!HFX_Init())
+    if (!HFX_Init("Example", 1280, 720))
     {
         fprintf(stderr, "Failed to initialize HFX\n");
         exit(1);
     }
 
-    struct WINDOW* window = HFX_WindowCreate("Hello World", 1200, 675);
-    if (window == NULL)
-    {
-        fprintf(stderr, "Failed to create window (Error: %s)\n", HFX_GetLastError());
-        exit(1);
-    }
-
-    struct MESH* cube = HFX_MeshCreatePrimitive(HFX_PRIMITIVE_CUBE);
+    struct MESH* cube = HFX_MeshPrimitiveCreate(HFX_PRIMITIVE_CUBE);
 
     char buffer[64];
     GetFullPathName("shaders/example.glsl", 64, buffer, nullptr);
@@ -33,44 +26,65 @@ int main() {
         exit(1);
     }
 
-    struct TRANSFORM transform;
-    glm_vec3_make((vec3){ 0, 0, -5.0f }, transform.translation);
-    glm_vec3_make((vec3){ 0, 5.0f, 0 }, transform.rotation);
-    glm_vec3_make((vec3){ 1, 1, 1 }, transform.scale);
+    struct TRANSFORM transforms[5] = {
+        HFX_TransformFromPosition((vec3) { 0, 0, -5.f }),
+        HFX_TransformFromPosition((vec3) { 2, 0, -7.f }),
+        HFX_TransformFromPosition((vec3) { -3, 1, -4.f }),
+        HFX_TransformFromPosition((vec3) { 1, -3, -8.f }),
+        HFX_TransformFromPosition((vec3) { 4, 3, -6.f }),
+    };
 
     GetFullPathName("textures/base-map.png", 64, buffer, nullptr);
     struct TEXTURE* texture = HFX_TextureCreate(buffer, false);
 
-    IG_Init(window);
-    while (!HFX_WindowShouldClose(window))
+    IG_Init(HFX_GetWindow());
+    while (!HFX_WindowShouldClose(HFX_GetWindow()))
     {
         HFX_WindowUpdateInput();
         HFX_WindowClearScreen(0.125f, 0.125f, 0.125f, 1.0f);
-        { // Geometry
-
-            /*HFX_CmdCullMode(true, HFX_CULL_BACK, HFX_POLYGON_FILL);
-            HFX_CmdDepthMode(HFX_DEPTH_READ_WRITE_ENABLE);
-            HFX_CmdDepthFunc(HFX_DEPTH_LESS);
-
-            HFX_CmdDraw();*/
-
-            //HFX_RendererDrawMesh(cube, shader, transform);
-            HFX_RendererDrawMeshEx(cube, shader, transform, GLM_VEC4_ONE, texture);
-            //HFX_DrawMesh(cube, shader);
+        {
+            for (int i = 0; i < 5; i++)
+            {
+                HFX_RendererDrawMesh(cube, shader, transforms[i], texture);
+            }
         }
 
         IG_NewFrame();
         { // UI
-            IG_Begin("Sample Window", nullptr, 0);
-            IG_Slider1F("Rotation X", &transform.rotation[0], 0.0f, 360.0f, "%.1f", 0);
-            IG_Slider1F("Rotation Y", &transform.rotation[1], 0.0f, 360.0f, "%.1f", 0);
-            IG_Slider1F("Rotation Z", &transform.rotation[2], 0.0f, 360.0f, "%.1f", 0);
+            IG_Begin("Transforms", nullptr, 0);
+
+            for (int i = 0; i < 5; i++)
+            {
+                char label[32];
+                snprintf(label, 32, "Cube %d", i);
+
+                char rot[32];
+                snprintf(rot, 32, "##Rotation-%d", i);
+
+                char loc[32];
+                snprintf(loc, 32, "##Position-%d", i);
+
+                if (IG_CollapsingHeader(label))
+                {
+                    IG_Text("Rotation");
+                    IG_Slider3F(rot, transforms[i].rotation, 0.f, 360.f, "%.1f °", 0);
+
+                    IG_Text("Position");
+                    IG_Slider3F(loc, transforms[i].translation, -5.f, 5.f, "%.1f", 0);
+
+                    if (IG_Button("Reset"))
+                    {
+                        glm_vec3_zero(transforms[i].translation);
+                        glm_vec3_zero(transforms[i].rotation);
+                    }
+                }
+            }
 
             IG_End();
         }
         IG_Render();
 
-        HFX_WindowSwapBuffers(window);
+        HFX_WindowSwapBuffers(HFX_GetWindow());
     }
 
     IG_Destroy();

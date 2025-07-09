@@ -3,17 +3,33 @@
 
 struct RENDERER g_Renderer;
 
-bool HFX_Init()
+bool HFX_Init(
+    const char* title,
+    usize width,
+    usize height)
 {
     HFX_MemoryArenaInit();
     g_Renderer.camera = HFX_ALLOC(sizeof(struct CAMERA));
+    g_Renderer.window = HFX_WindowCreate(title, width, height);
+
+    if (g_Renderer.window == NULL)
+    {
+        HFX_LOG(LOG_ERROR, "Failed to create window (Error: %s)\n", HFX_GetLastError());
+        HFX_SetLastError("Failed to initialize window");
+        return false;
+    }
+
+    usize framebufferWidth, framebufferHeight;
+    glfwGetFramebufferSize(g_Renderer.window->handle, (int*)&framebufferWidth, (int*)&framebufferHeight);
+    const f32 aspectRatio = (f32)framebufferWidth / (f32)framebufferHeight;
+
+    glm_perspective(glm_rad(45.0f), aspectRatio, 0.1f, 100.0f, g_Renderer.camera->projection);
 
     glm_vec3_zero(g_Renderer.camera->transform.translation);
-    glm_vec3_make((vec3){ 0, 0, 5.0f }, g_Renderer.camera->transform.translation);
-
     glm_vec3_zero(g_Renderer.camera->transform.rotation);
     glm_vec3_one(g_Renderer.camera->transform.scale);
 
+    glEnable(GL_CULL_FACE);
     return true;
 }
 
@@ -26,14 +42,11 @@ void HFX_Destroy()
 void HFX_RendererDrawMesh(
     PMESH mesh,
     PSHADER shader,
-    struct TRANSFORM transform)
+    struct TRANSFORM transform,
+    PTEXTURE texture)
 {
-
-    int actualWidth, actualHeight;
-    glfwGetFramebufferSize(g_Renderer.window->handle, &actualWidth, &actualHeight);
-    float aspectRatio = (float)actualWidth / (float)actualHeight;
-
-    glm_perspective(glm_rad(45.0f), aspectRatio, 0.1f, 100.0f, g_Renderer.camera->projection);
+    if (texture != nullptr)
+        glBindTexture(GL_TEXTURE_2D, texture->handle);
 
     GLint   projectionLocation,
             viewLocation,
@@ -43,14 +56,11 @@ void HFX_RendererDrawMesh(
     GL_CALL(viewLocation = glGetUniformLocation(shader->program, "hfx_uView"));
     GL_CALL(modelLocation = glGetUniformLocation(shader->program, "hfx_uModel"));
 
-    mat4    cameraMatrix = GLM_MAT4_IDENTITY_INIT,
-            cameraViewMatrix = GLM_MAT4_IDENTITY_INIT,
+    mat4    cameraViewMatrix = GLM_MAT4_IDENTITY_INIT,
             modelMatrix = GLM_MAT4_IDENTITY_INIT;
 
-    HFX_TransformGetMatrix(&transform, modelMatrix);
-    HFX_TransformGetMatrix(&g_Renderer.camera->transform, cameraMatrix);
-
-    glm_mat4_inv(cameraMatrix, cameraViewMatrix);
+    HFX_TransformGetToWorldMatrix(&transform, modelMatrix);
+    HFX_TransformGetToLocalMatrix(&g_Renderer.camera->transform, cameraViewMatrix);
 
     GL_CALL(glUseProgram(shader->program));
     GL_CALL(glUniformMatrix4fv(projectionLocation, 1, GL_FALSE, (const GLfloat*)g_Renderer.camera->projection));
@@ -67,15 +77,14 @@ void HFX_RendererDrawMesh(
     glBindVertexArray(0);
 }
 
-void HFX_RendererDrawMeshEx(
-    PMESH mesh,
-    PSHADER shader,
-    struct TRANSFORM transform,
-    vec4 color,
-    PTEXTURE texture)
+struct CAMERA* HFX_GetCamera()
 {
-    glBindTexture(GL_TEXTURE_2D, texture->handle);
-    HFX_RendererDrawMesh(mesh, shader, transform);
+    return g_Renderer.camera;
+}
+
+struct WINDOW* HFX_GetWindow()
+{
+    return g_Renderer.window;
 }
 
 struct RENDERER* HFX_GetRenderer()

@@ -38,21 +38,19 @@ PSHADER HFX_ShaderCreate(
     fclose(file);
 
     char* vertexShaderSource[] = {
-        HFX_SHADER_SOURCE_HEADER_VERT,
-        buffer
+        HFX_SHADER_SOURCE_VERT(buffer)
     };
 
     char* fragmentShaderSource[] = {
-        HFX_SHADER_SOURCE_HEADER_FRAG,
-        buffer
+        HFX_SHADER_SOURCE_FRAG(buffer)
     };
 
     u32 vertex, fragment;
     GL_CALL(vertex = glCreateShader(GL_VERTEX_SHADER));
     GL_CALL(fragment = glCreateShader(GL_FRAGMENT_SHADER));
 
-    GL_CALL(glShaderSource(vertex, 2, (const GLchar**)vertexShaderSource, nullptr));
-    GL_CALL(glShaderSource(fragment, 2, (const GLchar**)fragmentShaderSource, nullptr));
+    GL_CALL(glShaderSource(vertex, 8, (const GLchar**)vertexShaderSource, nullptr));
+    GL_CALL(glShaderSource(fragment, 5, (const GLchar**)fragmentShaderSource, nullptr));
     HFX_FREE(buffer);
 
     GL_CALL(glCompileShader(vertex));

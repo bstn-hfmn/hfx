@@ -49,10 +49,10 @@ void* HFX_MemoryArenaAlloc(
 
 void HFX_MemoryArenaFree()
 {
-    struct ARENA_CHUNK *chunk = g_Arena.head;
+    struct ARENA_CHUNK* chunk = g_Arena.head;
     while (chunk)
     {
-        struct ARENA_CHUNK *next = chunk->next;
+        struct ARENA_CHUNK* next = chunk->next;
         HFX_FREE(chunk->memory);
         HFX_FREE(chunk);
         chunk = next;

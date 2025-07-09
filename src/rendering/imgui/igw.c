@@ -71,6 +71,33 @@ void IG_Slider1F(
     igSliderFloat(label, (f32*)val, min, max, format, flags);
 }
 
+void IG_Slider3F(
+    const char* label,
+    f32 values[3],
+    f32 min,
+    f32 max,
+    const char* format,
+    const HFX_ENUM flags)
+{
+    igPushItemWidth(-1);
+    igSliderFloat3(label, values, min, max, format, (int)flags);
+    igPopItemWidth();
+}
+
+bool IG_CollapsingHeader(const char* label)
+{
+    return igCollapsingHeader_TreeNodeFlags(label, ImGuiTreeNodeFlags_None);
+}
+
+bool IG_Button(
+    const char* label)
+{
+    ImVec2 size;
+    igCalcTextSize(&size, label, nullptr, false, 0.0f);
+
+    return igButton(label, (ImVec2) {-1, size.y + 5.0f });
+}
+
 void IG_End()
 {
     igEnd();
